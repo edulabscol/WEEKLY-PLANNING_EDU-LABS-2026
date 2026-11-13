@@ -1,0 +1,46 @@
+{
+  "name": "planeacion-semanal",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Planeación semanal de Edu Labs: tareas planeadas y adicionales, registro de tiempo y carga del equipo. SQLite en local, PostgreSQL 16 en servidor.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "start": "node --disable-warning=ExperimentalWarning dist/server.js",
+    "build": "node scripts/build.mjs",
+    "db:local": "bash scripts/pg-local.sh start",
+    "db:migrate": "node --disable-warning=ExperimentalWarning src/server/cli/migrate.ts",
+    "db:seed": "node --disable-warning=ExperimentalWarning src/server/cli/seed.ts",
+    "db:reset": "node --disable-warning=ExperimentalWarning src/server/cli/seed.ts --reset",
+    "db:backup": "node --disable-warning=ExperimentalWarning src/server/cli/backup.ts",
+    "db:schema": "node --disable-warning=ExperimentalWarning scripts/export-schema.ts",
+    "user:create-admin": "node --disable-warning=ExperimentalWarning src/server/cli/create-admin.ts",
+    "lint": "node scripts/lint.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --disable-warning=ExperimentalWarning --test --test-reporter=spec \"tests/unit/**/*.test.ts\"",
+    "test:integration": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 --test-reporter=spec \"tests/integration/**/*.test.ts\"",
+    "test:integration:pg": "node scripts/test-pg.mjs",
+    "test:coverage": "node scripts/coverage.mjs",
+    "test:coverage:pg": "node scripts/coverage.mjs --with-pg",
+    "test:e2e": "node scripts/build.mjs && playwright test --project=e2e",
+    "test:visual": "node scripts/build.mjs && playwright test --project=visual",
+    "test:all": "bash scripts/check-all.sh",
+    "audit:deps": "npm audit --omit=dev",
+    "app:start": "bash scripts/start.sh",
+    "app:stop": "bash scripts/stop.sh"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.3",
+    "esbuild": "0.28.2",
+    "playwright": "1.63.0",
+    "typescript": "6.0.3"
+  }
+}

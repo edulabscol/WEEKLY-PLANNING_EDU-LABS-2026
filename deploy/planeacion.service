@@ -1,0 +1,22 @@
+# Alternativa sin Docker: servicio systemd (Linux). Copie a /etc/systemd/system/planeacion.service
+# Las migraciones se aplican antes, con el rol propietario: ver docs/DEPLOYMENT.md
+[Unit]
+Description=Planeación semanal (Edu Labs)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=planeacion
+WorkingDirectory=/opt/planeacion
+EnvironmentFile=/opt/planeacion/.env
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning dist/server.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

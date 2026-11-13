@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F6F9;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#5E1A8C}a:hover{color:#E6195F}
+input,select,textarea,button{font-family:inherit}
+@keyframes elpulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes elin{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+@keyframes elslide{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#F7F6F9;font-family:'Nunito Sans',system-ui,sans-serif;color:#1E1A24;font-size:14px">
+
+<header style="background:#fff;border-bottom:1px solid #E7E4EC;position:sticky;top:0;z-index:30">
+  <div style="display:flex;align-items:center;gap:14px;padding:10px 24px;flex-wrap:wrap;max-width:1440px;margin:0 auto">
+    <img src="https://moodle.com/wp-content/uploads/2019/03/edulabs.png" alt="Edu Labs" style="height:30px;width:auto;display:block">
+    <div style="width:1px;height:26px;background:#E7E4EC"></div>
+    <div style="font-family:Lexend,sans-serif;font-weight:500;font-size:15px;color:#4A4752">Planeación semanal</div>
+    <div style="flex:1;min-width:8px"></div>
+    <sc-if value="{{ timerOn }}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="display:flex;align-items:center;gap:10px;background:#FDE6EE;color:#A10F43;border-radius:999px;padding:5px 6px 5px 12px;font-weight:700;font-size:13px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#E6195F;animation:elpulse 1.2s infinite"></span>
+        <span style="font-variant-numeric:tabular-nums">{{ timerClock }}</span>
+        <span style="font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ timerTask }}</span>
+        <button onClick="{{ stopTimer }}" style="border:0;background:#E6195F;color:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer">■ Detener</button>
+      </div>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:8px;background:#F3F1F6;border-radius:10px;padding:0 12px;height:38px;min-width:180px;flex:0 1 240px">
+      <span style="color:#8A8A8F;font-size:14px">⌕</span>
+      <input value="{{ q }}" onChange="{{ onQ }}" placeholder="Buscar tarea o proyecto" aria-label="Buscar" style="border:0;background:transparent;outline:none;flex:1;min-width:0;font-size:14px;color:#1E1A24">
+    </div>
+    <button onClick="{{ toggleHelp }}" aria-label="Ayuda" title="Ayuda y atajos" style="width:38px;height:38px;border-radius:10px;border:1px solid #E7E4EC;background:#fff;font-family:Lexend;font-weight:600;color:#5E1A8C;cursor:pointer">?</button>
+    <button onClick="{{ newTask }}" disabled="{{ noWeek }}" style="height:38px;border:0;border-radius:10px;background:#5E1A8C;color:#fff;font-weight:700;font-size:14px;padding:0 16px;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="background:#4B1270">
+      <span style="font-size:18px;line-height:1">+</span><span>Nueva tarea</span>
+    </button>
+  </div>
+  <div style="display:flex;height:4px">
+    <div style="flex:1;background:#FFC20E"></div><div style="flex:1;background:#E6195F"></div><div style="flex:2;background:#5E1A8C"></div><div style="flex:1;background:#22A7E8"></div><div style="flex:1;background:#7DBA1F"></div>
+  </div>
+</header>
+
+<main style="max-width:1440px;margin:0 auto;padding:20px 24px 96px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onClick="{{ prevWeek }}" disabled="{{ prevDisabled }}" aria-label="Semana anterior" style="width:36px;height:36px;border-radius:10px;border:1px solid #E7E4EC;background:#fff;font-size:20px;color:#4A4752;cursor:pointer;opacity:{{ prevOpacity }}">‹</button>
+      <div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-family:Lexend,sans-serif;font-size:26px;font-weight:600;letter-spacing:-.01em">{{ weekTitle }}</div>
+          <span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{ weekBadgeBg }};color:{{ weekBadgeColor }}">{{ weekBadge }}</span>
+        </div>
+        <div style="color:#6B6B73;font-size:13px;margin-top:2px">{{ weekRange }}</div>
+      </div>
+      <button onClick="{{ nextWeek }}" disabled="{{ nextDisabled }}" aria-label="Semana siguiente" style="width:36px;height:36px;border-radius:10px;border:1px solid #E7E4EC;background:#fff;font-size:20px;color:#4A4752;cursor:pointer;opacity:{{ nextOpacity }}">›</button>
+      <sc-if value="{{ showGoToday }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ goToday }}" style="border:0;background:transparent;color:#5E1A8C;font-weight:700;cursor:pointer;font-size:13px;text-decoration:underline">Ir a esta semana</button>
+      </sc-if>
+    </div>
+    <div role="tablist" style="display:flex;gap:4px;background:#EDEAF1;padding:4px;border-radius:12px;overflow-x:auto">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+        <button role="tab" onClick="{{ t.onClick }}" style="border:0;border-radius:9px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;background:{{ t.bg }};color:{{ t.color }};box-shadow:{{ t.shadow }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:700;color:#6B6B73;text-transform:uppercase;letter-spacing:.06em;margin-right:4px">Equipo</span>
+    <button onClick="{{ clearFilter }}" style="border:1px solid {{ allBorder }};background:{{ allBg }};color:{{ allColor }};border-radius:999px;padding:5px 12px;font-weight:700;font-size:12px;cursor:pointer">Todos</button>
+    <sc-for list="{{ peopleChips }}" as="p" hint-placeholder-count="6">
+      <button onClick="{{ p.onClick }}" title="{{ p.name }}" style="display:flex;align-items:center;gap:6px;border:1px solid {{ p.border }};background:{{ p.bg }};border-radius:999px;padding:3px 10px 3px 3px;cursor:pointer;font-size:12px;font-weight:700;color:#1E1A24">
+        <span style="width:24px;height:24px;border-radius:50%;background:{{ p.color }};color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800">{{ p.ini }}</span>
+        <span>{{ p.first }}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ showClosedBanner }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:16px;background:#fff;border:1px solid #E7E4EC;border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:center;color:#4A4752;font-size:13px">
+      <span style="width:8px;height:8px;border-radius:50%;background:#8A8A8F"></span>
+      <span>{{ closedText }}</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ noWeek }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:24px;background:#fff;border:1px solid #E7E4EC;border-radius:16px;padding:32px;max-width:640px;animation:elin .3s ease">
+      <div style="font-family:Lexend;font-size:22px;font-weight:600">{{ emptyTitle }}</div>
+      <p style="color:#4A4752;line-height:1.55;margin:8px 0 20px;text-wrap:pretty">{{ emptyText }}</p>
+      <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+        <div style="border:1px solid #EFEDF2;border-radius:12px;margin-bottom:20px">
+          <sc-for list="{{ pending }}" as="pt" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #F3F1F6">
+              <span style="width:8px;height:8px;border-radius:50%;background:{{ pt.color }}"></span>
+              <span style="flex:1;font-weight:600">{{ pt.name }}</span>
+              <span style="font-size:12px;color:#6B6B73">{{ pt.status }}</span>
+              <span style="font-size:12px;color:#6B6B73;font-variant-numeric:tabular-nums">{{ pt.left }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button onClick="{{ createCarry }}" style="border:0;background:#5E1A8C;color:#fff;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer">{{ createCarryLabel }}</button>
+        <button onClick="{{ createEmpty }}" style="border:1px solid #E7E4EC;background:#fff;color:#4A4752;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer">Crear tablero vacío</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasWeek }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:20px">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+        <div style="background:#fff;border:1px solid #E7E4EC;border-radius:14px;padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#6B6B73;font-weight:700">
+            <span style="width:8px;height:8px;border-radius:2px;background:{{ s.color }}"></span>{{ s.label }}
+          </div>
+          <div style="font-family:Lexend;font-size:24px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums;color:{{ s.valueColor }}">{{ s.value }}</div>
+          <div style="font-size:12px;color:#6B6B73;margin-top:2px">{{ s.sub }}</div>
+          <sc-if value="{{ s.hasBar }}" hint-placeholder-val="{{ false }}"><div style="height:6px;background:#EFEDF2;border-radius:999px;overflow:hidden;margin-top:10px"><div style="height:100%;border-radius:999px;width:{{ s.barW }};background:{{ s.color }}"></div></div></sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="2">
+        <section style="margin-top:24px;background:#fff;border:1px solid #E7E4EC;border-radius:16px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;flex-wrap:wrap;border-bottom:3px solid {{ sec.color }}">
+            <button onClick="{{ sec.toggle }}" aria-label="Contraer sección" style="border:0;background:transparent;cursor:pointer;font-size:12px;color:#6B6B73;width:20px;transform:{{ sec.chevRot }};transition:transform .15s">▼</button>
+            <div style="flex:1;min-width:200px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-family:Lexend;font-weight:600;font-size:17px">{{ sec.title }}</span>
+                <span style="background:{{ sec.soft }};color:{{ sec.color }};font-weight:800;font-size:12px;border-radius:999px;padding:2px 8px">{{ sec.count }}</span>
+              </div>
+              <div style="font-size:12px;color:#6B6B73;margin-top:2px">{{ sec.subtitle }}</div>
+            </div>
+            <div style="font-size:13px;color:#4A4752;font-variant-numeric:tabular-nums">Avance <b>{{ sec.prog }}</b> · Est. <b>{{ sec.est }}</b> · Real <b>{{ sec.real }}</b></div>
+            <button onClick="{{ sec.onAdd }}" style="border:1px solid {{ sec.color }};color:{{ sec.color }};background:#fff;border-radius:9px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer">+ Agregar</button>
+          </div>
+          <sc-if value="{{ sec.open }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:30px minmax(0,1fr) 92px 128px 68px 92px 92px 128px 40px;gap:12px;padding:8px 16px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#8A8A8F;background:#FBFAFC">
+                <span></span><span>Tarea</span><span>Responsables</span><span>Estado</span><span>Prioridad</span><span>Vence</span><span>Avance</span><span>Estimado / Real</span><span></span>
+              </div>
+            </sc-if>
+            <sc-for list="{{ sec.rows }}" as="r" hint-placeholder-count="4">
+              <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ r.onOpen }}" style="display:grid;grid-template-columns:30px minmax(0,1fr) 92px 128px 68px 92px 92px 128px 40px;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid #F1EFF4;cursor:pointer;background:#fff" style-hover="background:#FAF7FC">
+                  <button onClick="{{ r.onToggle }}" aria-label="Marcar completada" title="Marcar completada" style="width:22px;height:22px;border-radius:7px;border:2px solid {{ r.checkBorder }};background:{{ r.checkBg }};color:#fff;font-size:12px;font-weight:800;cursor:pointer;display:grid;place-items:center;padding:0">{{ r.checkMark }}</button>
+                  <div style="min-width:0">
+                    <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:{{ r.deco }};color:{{ r.nameColor }}">{{ r.name }}</div>
+                    <div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap;align-items:center">
+                      <sc-if value="{{ r.hasProject }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;font-weight:700;color:#4A4752;background:#F3F1F6;border-radius:6px;padding:1px 7px">{{ r.project }}</span></sc-if>
+                      <sc-if value="{{ r.carried }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:800;color:#7A5A00;background:#FFF5D6;border-radius:6px;padding:1px 7px">↻ {{ r.carriedLabel }}</span></sc-if>
+                      <sc-if value="{{ r.moved }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:800;color:#4A4752;background:#EFEEF2;border-radius:6px;padding:1px 7px">→ {{ r.movedLabel }}</span></sc-if>
+                      <sc-if value="{{ r.hasRequested }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#6B6B73">Solicitó: {{ r.requestedBy }}</span></sc-if>
+                      <sc-if value="{{ r.hasDelay }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:700;color:#A10F43">⚑ Retraso justificado</span></sc-if>
+                    </div>
+                  </div>
+                  <div style="display:flex">
+                    <sc-for list="{{ r.avatars }}" as="a" hint-placeholder-count="2">
+                      <span title="{{ a.name }}" style="width:28px;height:28px;border-radius:50%;background:{{ a.color }};color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800;border:2px solid #fff;margin-right:-8px">{{ a.ini }}</span>
+                    </sc-for>
+                    <sc-if value="{{ r.noAssignee }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#A10F43;font-weight:700">Sin asignar</span></sc-if>
+                  </div>
+                  <select value="{{ r.status }}" onChange="{{ r.onStatus }}" onClick="{{ stop }}" aria-label="Estado" style="appearance:none;border:0;border-radius:999px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;background:{{ r.statusBg }};color:{{ r.statusText }};width:100%">
+                    <sc-for list="{{ statusOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.k }}">{{ o.l }}</option></sc-for>
+                  </select>
+                  <span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:{{ r.prioColor }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ r.prioColor }}"></span>{{ r.prioLabel }}</span>
+                  <span style="font-size:13px;font-weight:700;color:{{ r.dueColor }}">{{ r.dueLabel }}</span>
+                  <div onClick="{{ stop }}" style="display:flex;flex-direction:column;gap:5px">
+                    <select value="{{ r.progress }}" onChange="{{ r.onProgress }}" aria-label="Porcentaje de avance" style="appearance:none;border:1px solid #E7E4EC;border-radius:8px;padding:4px 8px;font-weight:800;font-size:12px;background:#fff;color:{{ r.progColor }};cursor:pointer;font-variant-numeric:tabular-nums">
+                      <sc-for list="{{ progOpts }}" as="o" hint-placeholder-count="11"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+                    </select>
+                    <div style="height:4px;background:#EFEDF2;border-radius:999px;overflow:hidden"><div style="height:100%;border-radius:999px;width:{{ r.progW }};background:{{ r.progColor }}"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;font-variant-numeric:tabular-nums"><span style="color:#6B6B73">{{ r.est }}</span><span style="font-weight:800;color:{{ r.realColor }}">{{ r.real }}</span></div>
+                    <div style="height:6px;background:#EFEDF2;border-radius:999px;margin-top:5px;overflow:hidden"><div style="height:100%;border-radius:999px;width:{{ r.barW }};background:{{ r.barColor }}"></div></div>
+                  </div>
+                  <button onClick="{{ r.onTimer }}" aria-label="{{ r.timerAria }}" title="{{ r.timerAria }}" style="width:32px;height:32px;border-radius:50%;border:0;cursor:pointer;font-size:11px;background:{{ r.timerBg }};color:{{ r.timerColor }}">{{ r.timerIcon }}</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ r.onOpen }}" style="padding:12px 14px;border-top:1px solid #F1EFF4;display:flex;gap:12px;align-items:flex-start">
+                  <button onClick="{{ r.onToggle }}" aria-label="Marcar completada" style="flex:none;width:24px;height:24px;margin-top:2px;border-radius:7px;border:2px solid {{ r.checkBorder }};background:{{ r.checkBg }};color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;padding:0">{{ r.checkMark }}</button>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:700;text-decoration:{{ r.deco }};color:{{ r.nameColor }}">{{ r.name }}</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center">
+                      <span style="font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;background:{{ r.statusBg }};color:{{ r.statusText }}">{{ r.statusLabel }}</span>
+                      <span style="font-size:12px;font-weight:800;color:{{ r.progColor }}">{{ r.progLabel }}</span>
+                      <span style="font-size:12px;font-weight:700;color:{{ r.dueColor }}">{{ r.dueLabel }}</span>
+                      <sc-if value="{{ r.carried }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:800;color:#7A5A00;background:#FFF5D6;border-radius:6px;padding:1px 7px">↻ {{ r.carriedLabel }}</span></sc-if>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                      <div style="display:flex"><sc-for list="{{ r.avatars }}" as="a" hint-placeholder-count="2"><span style="width:24px;height:24px;border-radius:50%;background:{{ a.color }};color:#fff;display:grid;place-items:center;font-size:9px;font-weight:800;border:2px solid #fff;margin-right:-6px">{{ a.ini }}</span></sc-for></div>
+                      <span style="flex:1"></span>
+                      <span style="font-size:12px;font-variant-numeric:tabular-nums;color:#6B6B73">{{ r.est }} · <b style="color:{{ r.realColor }}">{{ r.real }}</b></span>
+                    </div>
+                  </div>
+                  <button onClick="{{ r.onTimer }}" aria-label="{{ r.timerAria }}" style="flex:none;width:44px;height:44px;border-radius:50%;border:0;font-size:12px;background:{{ r.timerBg }};color:{{ r.timerColor }}">{{ r.timerIcon }}</button>
+                </div>
+              </sc-if>
+            </sc-for>
+            <sc-if value="{{ sec.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:20px 16px;color:#6B6B73;font-size:13px;border-top:1px solid #F1EFF4">{{ sec.emptyText }}</div>
+            </sc-if>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-top:1px solid #F1EFF4;background:#FBFAFC">
+              <span style="color:{{ sec.color }};font-weight:800;font-size:16px;width:30px;text-align:center">+</span>
+              <input value="{{ sec.quick }}" onChange="{{ sec.onQuick }}" onKeyDown="{{ sec.onQuickKey }}" placeholder="{{ sec.quickPh }}" aria-label="{{ sec.quickPh }}" style="flex:1;min-width:0;border:0;background:transparent;outline:none;padding:8px 0;font-size:14px">
+            </div>
+          </sc-if>
+        </section>
+      </sc-for>
+    </sc-if>
+
+    <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:14px;overflow-x:auto;margin-top:24px;padding-bottom:12px;align-items:flex-start">
+        <sc-for list="{{ columns }}" as="col" hint-placeholder-count="5">
+          <div onDragOver="{{ col.onOver }}" onDrop="{{ col.onDrop }}" style="flex:0 0 280px;background:{{ col.zoneBg }};border-radius:16px;padding:10px;min-height:300px;border:2px dashed {{ col.zoneBorder }}">
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 6px 10px">
+              <span style="width:10px;height:10px;border-radius:50%;background:{{ col.color }}"></span>
+              <span style="font-family:Lexend;font-weight:600">{{ col.label }}</span>
+              <span style="color:#6B6B73;font-weight:700;font-size:12px">{{ col.count }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ col.cards }}" as="c" hint-placeholder-count="2">
+                <div draggable="true" onDragStart="{{ c.onDrag }}" onDragEnd="{{ endDrag }}" onClick="{{ c.onOpen }}" style="background:#fff;border-radius:12px;padding:12px;border:1px solid #E7E4EC;cursor:grab;box-shadow:0 1px 2px rgba(30,26,36,.05)" style-hover="border-color:#C9B6DA">
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+                    <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:{{ c.typeColor }};background:{{ c.typeSoft }};border-radius:5px;padding:2px 6px">{{ c.typeLabel }}</span>
+                    <sc-if value="{{ c.carried }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:800;color:#7A5A00;background:#FFF5D6;border-radius:5px;padding:2px 6px">↻ {{ c.carriedLabel }}</span></sc-if>
+                  </div>
+                  <div style="font-weight:700;line-height:1.35">{{ c.name }}</div>
+                  <sc-if value="{{ c.hasProject }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:#6B6B73;margin-top:2px">{{ c.project }}</div></sc-if>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+                    <div style="flex:1;height:5px;background:#EFEDF2;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ c.progW }};background:{{ c.progColor }}"></div></div>
+                    <span style="font-size:12px;font-weight:800;color:{{ c.progColor }};font-variant-numeric:tabular-nums">{{ c.progLabel }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                    <div style="display:flex"><sc-for list="{{ c.avatars }}" as="a" hint-placeholder-count="2"><span title="{{ a.name }}" style="width:24px;height:24px;border-radius:50%;background:{{ a.color }};color:#fff;display:grid;place-items:center;font-size:9px;font-weight:800;border:2px solid #fff;margin-right:-6px">{{ a.ini }}</span></sc-for></div>
+                    <span style="flex:1"></span>
+                    <span style="font-size:12px;font-weight:700;color:{{ c.dueColor }}">{{ c.dueLabel }}</span>
+                    <span style="font-size:12px;font-variant-numeric:tabular-nums;color:{{ c.realColor }};font-weight:800">{{ c.real }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isLoad }}" hint-placeholder-val="{{ false }}">
+      <section style="margin-top:24px;background:#fff;border:1px solid #E7E4EC;border-radius:16px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:16px;padding:16px;flex-wrap:wrap;border-bottom:1px solid #F1EFF4">
+          <div style="flex:1;min-width:220px">
+            <div style="font-family:Lexend;font-weight:600;font-size:17px">Carga del equipo · {{ weekTitle }}</div>
+            <div style="font-size:12px;color:#6B6B73;margin-top:2px">Horas reales registradas por persona frente a la capacidad semanal de {{ capLabel }}. Toca una persona para ver en qué tareas estuvo.</div>
+          </div>
+          <div style="display:flex;gap:14px;font-size:12px;color:#4A4752;flex-wrap:wrap">
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#5E1A8C"></span>Planeado</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#E6195F"></span>Adicional</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:2px;height:14px;background:#1E1A24"></span>Capacidad</span>
+          </div>
+        </div>
+        <sc-for list="{{ load }}" as="l" hint-placeholder-count="6">
+          <div onClick="{{ l.onClick }}" style="display:grid;grid-template-columns:{{ loadCols }};gap:16px;align-items:center;padding:14px 16px;border-top:1px solid #F1EFF4;cursor:pointer" style-hover="background:#FAF7FC">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+              <span style="flex:none;width:36px;height:36px;border-radius:50%;background:{{ l.color }};color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800">{{ l.ini }}</span>
+              <div style="min-width:0"><div style="font-weight:700">{{ l.name }}</div><div style="font-size:12px;color:#6B6B73">{{ l.role }} · {{ l.tasks }}</div></div>
+            </div>
+            <div>
+              <div style="position:relative;height:18px;background:#F1EFF4;border-radius:6px;overflow:visible">
+                <div style="position:absolute;left:0;top:0;bottom:0;display:flex;border-radius:6px;overflow:hidden;width:{{ l.totalW }}">
+                  <div style="background:#5E1A8C;width:{{ l.planShare }}"></div>
+                  <div style="background:#E6195F;flex:1"></div>
+                </div>
+                <div style="position:absolute;top:-4px;bottom:-4px;width:2px;background:#1E1A24;left:{{ l.capLeft }}"></div>
+              </div>
+              <div style="display:flex;gap:12px;font-size:12px;color:#6B6B73;margin-top:6px;font-variant-numeric:tabular-nums;flex-wrap:wrap">
+                <span>Planeado {{ l.plan }}</span><span>Adicional {{ l.extra }}</span><span>Estimado {{ l.est }}</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end">
+              <span style="font-family:Lexend;font-weight:600;font-size:20px;font-variant-numeric:tabular-nums">{{ l.real }}</span>
+              <span style="font-size:12px;font-weight:800;border-radius:999px;padding:4px 10px;white-space:nowrap;background:{{ l.stateBg }};color:{{ l.stateColor }}">{{ l.state }}</span>
+              <span aria-hidden="true" style="font-size:11px;color:#6B6B73;transform:{{ l.chevRot }};transition:transform .15s">▼</span>
+            </div>
+          </div>
+          <sc-if value="{{ l.open }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#FBFAFC;border-top:1px solid #F1EFF4;padding:8px 16px 14px;animation:elin .2s ease">
+              <div style="display:flex;align-items:center;gap:10px;padding:6px 0 8px;flex-wrap:wrap">
+                <span style="font-size:12px;font-weight:800;color:#6B6B73;text-transform:uppercase;letter-spacing:.06em;flex:1">Tareas de {{ l.first }} esta semana</span>
+                <button onClick="{{ l.onFilter }}" style="border:0;background:transparent;color:#5E1A8C;font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline">Ver en la lista</button>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <sc-for list="{{ l.items }}" as="it" hint-placeholder-count="3">
+                  <div onClick="{{ it.onOpen }}" style="display:grid;grid-template-columns:{{ loadItemCols }};gap:12px;align-items:center;background:#fff;border:1px solid #EEEBF2;border-radius:10px;padding:10px 12px;cursor:pointer" style-hover="border-color:#C9B6DA">
+                    <div style="min-width:0">
+                      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                        <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:{{ it.typeColor }};background:{{ it.typeSoft }};border-radius:5px;padding:2px 6px">{{ it.typeLabel }}</span>
+                        <sc-if value="{{ it.hasProject }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:#6B6B73">{{ it.project }}</span></sc-if>
+                        <sc-if value="{{ it.shared }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#6B6B73">· compartida</span></sc-if>
+                      </div>
+                      <div style="font-weight:700;margin-top:3px;text-decoration:{{ it.deco }};color:{{ it.nameColor }}">{{ it.name }}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                      <span style="font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;background:{{ it.statusBg }};color:{{ it.statusText }}">{{ it.statusLabel }}</span>
+                      <span style="font-size:12px;font-weight:800;color:{{ it.progColor }}">{{ it.progLabel }}</span>
+                    </div>
+                    <div style="font-size:12px;font-variant-numeric:tabular-nums;color:#6B6B73;text-align:right">Est. {{ it.est }} · <b style="color:{{ it.realColor }}">Real {{ it.real }}</b></div>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ l.none }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#6B6B73;padding:6px 0">Sin tareas asignadas esta semana.</div></sc-if>
+            </div>
+          </sc-if>
+        </sc-for>
+      </section>
+    </sc-if>
+  </sc-if>
+</main>
+
+<sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeDrawer }}" style="position:fixed;inset:0;background:rgba(30,26,36,.32);z-index:40"></div>
+  <aside role="dialog" aria-label="Detalle de tarea" style="position:fixed;top:0;right:0;bottom:0;width:{{ drawerW }};background:#fff;z-index:41;display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(30,26,36,.18);animation:elslide .2s ease">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid #F1EFF4">
+      <div style="display:flex;gap:4px;background:#F3F1F6;padding:3px;border-radius:10px">
+        <sc-for list="{{ d.typeOpts }}" as="o" hint-placeholder-count="2">
+          <button onClick="{{ o.onClick }}" style="border:0;border-radius:8px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ d.carried }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:800;color:#7A5A00;background:#FFF5D6;border-radius:6px;padding:3px 8px">↻ {{ d.carriedLabel }}</span></sc-if>
+      <span style="flex:1"></span>
+      <span style="font-size:12px;color:#7DBA1F;font-weight:700">{{ savedLabel }}</span>
+      <button onClick="{{ closeDrawer }}" aria-label="Cerrar (Esc)" title="Cerrar (Esc)" style="width:36px;height:36px;border-radius:10px;border:0;background:#F3F1F6;font-size:18px;cursor:pointer;color:#4A4752">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:20px">
+      <textarea value="{{ d.name }}" onChange="{{ d.onName }}" placeholder="Nombre de la tarea" aria-label="Nombre de la tarea" rows="2" style="width:100%;border:0;outline:none;resize:none;font-family:Lexend;font-size:22px;font-weight:600;line-height:1.3;color:#1E1A24;padding:0"></textarea>
+      <sc-if value="{{ d.nameError }}" hint-placeholder-val="{{ false }}"><div style="color:#A10F43;font-size:12px;font-weight:700;margin-top:4px">Escribe un nombre para guardar la tarea.</div></sc-if>
+
+      <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px 14px;align-items:center;margin-top:18px;font-size:13px">
+        <span style="color:#6B6B73;font-weight:700">Estado</span>
+        <select value="{{ d.status }}" onChange="{{ d.onStatus }}" style="border:1px solid #E7E4EC;border-radius:10px;padding:9px 10px;font-weight:700;background:{{ d.statusBg }};color:{{ d.statusText }}">
+          <sc-for list="{{ statusOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.k }}">{{ o.l }}</option></sc-for>
+        </select>
+        <span style="color:#6B6B73;font-weight:700">Avance</span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input type="range" min="0" max="100" step="10" value="{{ d.progress }}" onChange="{{ d.onProgress }}" aria-label="Porcentaje de avance" style="flex:1;accent-color:#5E1A8C">
+          <span style="font-family:Lexend;font-weight:600;font-size:16px;width:48px;text-align:right;font-variant-numeric:tabular-nums;color:{{ d.progColor }}">{{ d.progLabel }}</span>
+        </div>
+        <span style="color:#6B6B73;font-weight:700">Prioridad</span>
+        <div style="display:flex;gap:6px">
+          <sc-for list="{{ d.prioOpts }}" as="o" hint-placeholder-count="3">
+            <button onClick="{{ o.onClick }}" style="flex:1;border:1px solid {{ o.border }};border-radius:9px;padding:8px;font-weight:800;font-size:12px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+        <span style="color:#6B6B73;font-weight:700">Vence</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="date" value="{{ d.due }}" onChange="{{ d.onDue }}" style="border:1px solid #E7E4EC;border-radius:10px;padding:8px 10px;font-size:13px;color:#1E1A24;flex:1">
+          <sc-if value="{{ d.overdue }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:800;color:#A10F43">Vencida</span></sc-if>
+        </div>
+        <span style="color:#6B6B73;font-weight:700">Proyecto</span>
+        <input value="{{ d.project }}" onChange="{{ d.onProject }}" placeholder="Cliente o proyecto" style="border:1px solid #E7E4EC;border-radius:10px;padding:9px 10px;font-size:13px">
+        <sc-if value="{{ d.isExtra }}" hint-placeholder-val="{{ false }}">
+          <span style="color:#6B6B73;font-weight:700">Solicitado por</span>
+          <input value="{{ d.requestedBy }}" onChange="{{ d.onRequested }}" placeholder="¿Quién pidió esta tarea?" style="border:1px solid #E7E4EC;border-radius:10px;padding:9px 10px;font-size:13px">
+        </sc-if>
+      </div>
+
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span style="font-family:Lexend;font-weight:600;font-size:15px">Responsables y tiempo</span>
+          <span style="font-size:12px;color:#6B6B73;font-variant-numeric:tabular-nums">Est. <b>{{ d.est }}</b> · Real <b style="color:{{ d.realColor }}">{{ d.real }}</b></span>
+        </div>
+        <div style="border:1px solid #E7E4EC;border-radius:12px;margin-top:10px;overflow:hidden">
+          <sc-for list="{{ d.people }}" as="ap" hint-placeholder-count="1">
+            <div style="padding:12px;border-top:1px solid #F1EFF4;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="flex:none;width:28px;height:28px;border-radius:50%;background:{{ ap.color }};color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800">{{ ap.ini }}</span>
+                <span style="flex:1;min-width:0;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ap.name }}</span>
+                <button onClick="{{ ap.onTimer }}" aria-label="{{ ap.timerAria }}" title="{{ ap.timerAria }}" style="width:34px;height:34px;border-radius:50%;border:0;cursor:pointer;font-size:11px;background:{{ ap.timerBg }};color:{{ ap.timerColor }}">{{ ap.timerIcon }}</button>
+                <button onClick="{{ ap.onRemove }}" aria-label="Quitar responsable" title="Quitar" style="border:0;background:transparent;color:#8A8A8F;font-size:16px;cursor:pointer;width:28px">×</button>
+              </div>
+              <div style="display:flex;gap:16px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:11px;font-weight:800;color:#8A8A8F;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Estimado</div>
+                  <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6B6B73"><input type="number" min="0" value="{{ ap.estH }}" onChange="{{ ap.onEstH }}" aria-label="Estimado horas" style="width:56px;border:1px solid #E7E4EC;border-radius:8px;padding:7px 6px;font-size:14px;font-variant-numeric:tabular-nums"><span>h</span><input type="number" min="0" value="{{ ap.estM }}" onChange="{{ ap.onEstM }}" aria-label="Estimado minutos" style="width:56px;border:1px solid #E7E4EC;border-radius:8px;padding:7px 6px;font-size:14px;font-variant-numeric:tabular-nums"><span>min</span></div>
+                </div>
+                <div>
+                  <div style="font-size:11px;font-weight:800;color:#8A8A8F;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Real</div>
+                  <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6B6B73"><input type="number" min="0" value="{{ ap.realH }}" onChange="{{ ap.onRealH }}" aria-label="Real horas" style="width:56px;border:1px solid #E7E4EC;border-radius:8px;padding:7px 6px;font-size:14px;font-variant-numeric:tabular-nums;font-weight:700;color:{{ ap.realColor }}"><span>h</span><input type="number" min="0" value="{{ ap.realM }}" onChange="{{ ap.onRealM }}" aria-label="Real minutos" style="width:56px;border:1px solid #E7E4EC;border-radius:8px;padding:7px 6px;font-size:14px;font-variant-numeric:tabular-nums;font-weight:700;color:{{ ap.realColor }}"><span>min</span></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span style="font-size:12px;color:#6B6B73;margin-right:2px">Sumar a real:</span>
+                <sc-for list="{{ ap.quick }}" as="qk" hint-placeholder-count="4">
+                  <button onClick="{{ qk.onClick }}" style="border:1px solid #E1D4EC;background:#F8F3FB;color:#5E1A8C;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer" style-hover="background:#F1E9F7">{{ qk.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ d.noPeople }}" hint-placeholder-val="{{ false }}"><div style="padding:12px;font-size:13px;color:#A10F43;border-top:1px solid #F1EFF4">Asigna al menos una persona para estimar y registrar tiempo.</div></sc-if>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+          <sc-for list="{{ d.addable }}" as="ad" hint-placeholder-count="3">
+            <button onClick="{{ ad.onAdd }}" style="display:flex;align-items:center;gap:6px;border:1px dashed #C9C3D2;background:#fff;border-radius:999px;padding:3px 10px 3px 3px;font-size:12px;font-weight:700;cursor:pointer;color:#4A4752">
+              <span style="width:22px;height:22px;border-radius:50%;background:{{ ad.color }};color:#fff;display:grid;place-items:center;font-size:9px;font-weight:800">{{ ad.ini }}</span>+ {{ ad.first }}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ d.showDelay }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:24px;border:1px solid #F6C9D8;background:#FFF7FA;border-radius:12px;padding:14px">
+          <div style="font-family:Lexend;font-weight:600;font-size:15px;color:#A10F43">Justificación del retraso</div>
+          <div style="font-size:12px;color:#4A4752;margin:4px 0 10px">Relaciona la tarea adicional que desplazó esta entrega.</div>
+          <select value="{{ d.delayBy }}" onChange="{{ d.onDelayBy }}" style="width:100%;border:1px solid #E7E4EC;border-radius:10px;padding:9px 10px;font-size:13px;background:#fff">
+            <option value="">Sin tarea relacionada</option>
+            <sc-for list="{{ d.delayOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.name }}</option></sc-for>
+          </select>
+          <textarea value="{{ d.delayReason }}" onChange="{{ d.onDelayReason }}" rows="2" placeholder="Nota breve (opcional)" style="width:100%;margin-top:8px;border:1px solid #E7E4EC;border-radius:10px;padding:9px 10px;font-size:13px;resize:vertical"></textarea>
+        </div>
+      </sc-if>
+
+      <div style="margin-top:24px">
+        <div style="font-family:Lexend;font-weight:600;font-size:15px;margin-bottom:8px">Descripción</div>
+        <textarea value="{{ d.desc }}" onChange="{{ d.onDesc }}" rows="4" placeholder="Entregables, enlaces, criterios de aceptación…" style="width:100%;border:1px solid #E7E4EC;border-radius:10px;padding:10px;font-size:13px;line-height:1.5;resize:vertical"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;padding:14px 20px;border-top:1px solid #F1EFF4">
+      <button onClick="{{ d.onDelete }}" style="border:0;background:transparent;color:#A10F43;font-weight:700;cursor:pointer;padding:10px 4px">Eliminar</button>
+      <span style="flex:1"></span>
+      <button onClick="{{ closeDrawer }}" style="border:0;background:#5E1A8C;color:#fff;border-radius:10px;padding:11px 22px;font-weight:700;cursor:pointer">Listo</button>
+    </div>
+  </aside>
+</sc-if>
+
+<sc-if value="{{ helpOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ toggleHelp }}" style="position:fixed;inset:0;background:rgba(30,26,36,.32);z-index:50;display:grid;place-items:center;padding:16px">
+    <div onClick="{{ stop }}" style="background:#fff;border-radius:16px;max-width:480px;width:100%;padding:24px;animation:elin .2s ease">
+      <div style="font-family:Lexend;font-weight:600;font-size:20px">Cómo funciona</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px;font-size:14px;line-height:1.5;color:#4A4752">
+        <div><b style="color:#5E1A8C">Planeación</b> es lo comprometido el lunes. <b style="color:#E6195F">Tareas adicionales</b> es lo que llega durante la semana.</div>
+        <div>Cada semana es un tablero nuevo. Al crearlo, las tareas no completadas de la semana anterior se traen marcadas con ↻.</div>
+        <div>Registra el tiempo como prefieras: con ▶ o a mano en horas y minutos desde el detalle de la tarea. Si alguien supera la capacidad semanal, aparece como <b style="color:#A10F43">Excedido</b>.</div>
+        <div>Si una tarea vence sin completarse, relaciona la tarea adicional que la retrasó.</div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:18px;font-size:12px;color:#6B6B73">
+        <span><kbd style="background:#F3F1F6;border-radius:5px;padding:2px 6px;font-weight:800">N</kbd> Nueva tarea</span>
+        <span><kbd style="background:#F3F1F6;border-radius:5px;padding:2px 6px;font-weight:800">Alt ← →</kbd> Cambiar semana</span>
+        <span><kbd style="background:#F3F1F6;border-radius:5px;padding:2px 6px;font-weight:800">Esc</kbd> Cerrar</span>
+      </div>
+      <button onClick="{{ toggleHelp }}" style="margin-top:20px;border:0;background:#5E1A8C;color:#fff;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer">Entendido</button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:#1E1A24;color:#fff;border-radius:12px;padding:12px 16px;display:flex;gap:14px;align-items:center;font-size:14px;box-shadow:0 12px 32px rgba(30,26,36,.3);max-width:calc(100vw - 32px)">
+    <span>{{ toastMsg }}</span>
+    <sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><button onClick="{{ doUndo }}" style="border:0;background:transparent;color:#FFC20E;font-weight:800;cursor:pointer">Deshacer</button></sc-if>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;capacity&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;min&quot;:20,&quot;max&quot;:60,&quot;unit&quot;:&quot;h&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Equipo&quot;},&quot;defaultView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;lista&quot;,&quot;options&quot;:[&quot;lista&quot;,&quot;tablero&quot;,&quot;carga&quot;],&quot;tsType&quot;:&quot;'lista'|'tablero'|'carga'&quot;,&quot;section&quot;:&quot;Vista&quot;}}">
+const PEOPLE=[
+ {id:'ye',name:'Yerson',role:'Colaborador',color:'#5E1A8C'},
+ {id:'ru',name:'Rubén',role:'Colaborador',color:'#1B8FCB'},
+ {id:'wi',name:'Wilson',role:'Colaborador',color:'#E6195F'}];
+PEOPLE.forEach(p=>{const s=p.name.split(' ');p.ini=s[1]?s[0][0]+s[1][0]:s[0].slice(0,2).toUpperCase();p.first=s[0];});
+const PM=Object.fromEntries(PEOPLE.map(p=>[p.id,p]));
+const STATUSES=[
+ {k:'todo',l:'Por hacer',c:'#8A8A8F',bg:'#EFEEF2',t:'#4A4752'},
+ {k:'doing',l:'En curso',c:'#22A7E8',bg:'#E1F3FC',t:'#0B6A99'},
+ {k:'review',l:'En revisión',c:'#FFC20E',bg:'#FFF3CF',t:'#7A5A00'},
+ {k:'blocked',l:'Bloqueada',c:'#E6195F',bg:'#FDE4ED',t:'#A10F43'},
+ {k:'done',l:'Completada',c:'#7DBA1F',bg:'#ECF6DE',t:'#47740A'}];
+const SM=Object.fromEntries(STATUSES.map(s=>[s.k,s]));
+const PRIOS=[{k:'alta',l:'Alta',c:'#D4134F'},{k:'media',l:'Media',c:'#B88300'},{k:'baja',l:'Baja',c:'#6B6B73'}];
+const PRM=Object.fromEntries(PRIOS.map(p=>[p.k,p]));
+const BASE_WEEK=45, BASE_MON=new Date(2026,10,2), TODAY=new Date(2026,10,5);
+const DOW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],MON=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const KEY='edulabs-planner-v4';
+const monday=w=>{const d=new Date(BASE_MON);d.setDate(d.getDate()+(w-BASE_WEEK)*7);return d;};
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const fmtDate=s=>{if(!s)return 'Sin fecha';const d=parse(s);return DOW[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()];};
+const r1=h=>Math.round(h*100)/100;
+const fmtH=h=>{const m=Math.round(h*60),H=Math.floor(m/60),M=m%60;return M?(H?H+'h '+M+'m':M+'m'):H+'h';};
+const PDEF={todo:0,doing:50,review:90,blocked:30,done:100};
+const wProg=list=>{let w=0,acc=0;list.forEach(t=>{const e=t.assignees.reduce((x,a)=>x+a.est,0)||1;w+=e;acc+=e*t.progress;});return w?Math.round(acc/w):0;};
+const uid=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const T=(o)=>{const {a,...rest}=o;return {id:uid(),desc:'',project:'',requestedBy:'',delayReason:'',delayBy:'',carriedFrom:null,movedTo:null,prio:'media',...rest,progress:rest.progress??PDEF[rest.status],assignees:a.map(([p,est,real])=>({p,est,real}))};};
+
+function seed(){
+ const w44=[
+  T({name:'Guiones instruccionales Módulo 1 y 2 – Diplomado FUCS',type:'plan',status:'done',prio:'alta',due:'2026-10-29',project:'FUCS',a:[['ye',16,17]]}),
+  T({name:'Actualización plugin de reportes',type:'plan',status:'blocked',prio:'alta',due:'2026-10-30',project:'Externado',movedTo:45,a:[['ru',10,6]]}),
+  T({name:'Plantilla gráfica curso de inducción',type:'plan',status:'doing',prio:'media',due:'2026-10-30',project:'Heel',movedTo:45,a:[['wi',14,8]]}),
+  T({name:'Diseño de evaluación final Módulo 2',type:'plan',status:'todo',prio:'media',due:'2026-10-30',project:'FUCS',movedTo:45,a:[['ye',6,0],['ru',2,0]]}),
+  T({name:'Animaciones de bienvenida',type:'plan',status:'done',prio:'media',due:'2026-10-28',project:'FUCS',a:[['ye',12,13]]}),
+  T({name:'Backups y monitoreo mensual',type:'plan',status:'done',prio:'baja',due:'2026-10-27',project:'Interno',a:[['wi',6,5]]}),
+  T({name:'Corrección de estilo guías de estudio',type:'plan',status:'done',prio:'media',due:'2026-10-29',project:'Externado',a:[['ru',10,9]]}),
+  T({name:'Atención incidencia de matrículas masivas',type:'extra',status:'done',prio:'alta',due:'2026-10-28',project:'UAPR',requestedBy:'Cliente UAPR',a:[['wi',4,7],['ru',3,6]]}),
+  T({name:'Demo comercial para nuevo cliente',type:'extra',status:'done',prio:'alta',due:'2026-10-29',project:'Comercial',requestedBy:'Gerencia comercial',a:[['wi',4,6],['ye',3,4]]}),
+ ];
+ const outage=T({name:'Caída de servidor campus Externado – soporte urgente',type:'extra',status:'done',prio:'alta',due:'2026-11-03',project:'Externado',requestedBy:'Cliente Externado',a:[['ru',3,8],['wi',3,5]]});
+ const w45=[
+  T({name:'Guion instruccional Módulo 3 – Diplomado FUCS',type:'plan',status:'doing',progress:70,prio:'alta',due:'2026-11-05',project:'FUCS',a:[['ye',10,16]]}),
+  T({name:'Montaje de curso de inducción corporativa en Moodle',type:'plan',status:'doing',progress:60,prio:'alta',due:'2026-11-06',project:'One Link',a:[['ru',12,16]]}),
+  T({name:'Banco de infografías Unidad 2',type:'plan',status:'review',prio:'media',due:'2026-11-04',project:'Externado',a:[['wi',8,9.5]]}),
+  T({name:'Videos animados – Introducción al curso',type:'plan',status:'doing',progress:40,prio:'media',due:'2026-11-06',project:'FUCS',a:[['ye',14,11]]}),
+  T({name:'Corrección de estilo guiones M1–M2',type:'plan',status:'done',prio:'media',due:'2026-11-03',project:'FUCS',a:[['ru',6,6]]}),
+  T({name:'Actualización plugin de reportes',type:'plan',status:'blocked',prio:'alta',due:'2026-10-30',project:'Externado',carriedFrom:44,delayBy:outage.id,delayReason:'Se priorizó la caída del servidor del martes.',a:[['ru',4,3]]}),
+  T({name:'Plantilla gráfica curso de inducción',type:'plan',status:'doing',prio:'media',due:'2026-11-04',progress:80,project:'Heel',carriedFrom:44,a:[['wi',6,7]]}),
+  T({name:'Migración de usuarios campus virtual',type:'plan',status:'doing',progress:70,prio:'media',due:'2026-11-05',project:'UAPR',a:[['wi',8,6]]}),
+  T({name:'Diseño de evaluación final Módulo 2',type:'plan',status:'todo',prio:'media',due:'2026-11-06',progress:20,project:'FUCS',carriedFrom:44,a:[['ye',6,4],['ru',2,0]]}),
+  T({name:'Paquetes SCORM módulos 1 y 2',type:'plan',status:'done',prio:'media',due:'2026-11-04',project:'FUCS',a:[['ru',4,4],['ye',2,2.5]]}),
+  T({name:'Storyboard Módulo 4',type:'plan',status:'doing',progress:30,prio:'baja',due:'2026-11-06',project:'FUCS',a:[['ye',8,11]]}),
+  T({name:'Capacitación docentes Moodle (sesión 1)',type:'plan',status:'done',prio:'media',due:'2026-11-03',project:'UAPR',a:[['wi',4,4]]}),
+  outage,
+  T({name:'Ajustes de último minuto a propuesta comercial',type:'extra',status:'done',prio:'alta',due:'2026-11-04',project:'Comercial',requestedBy:'Gerencia comercial',a:[['wi',4,5],['ye',2,3]]}),
+  T({name:'Reunión extraordinaria con cliente FUCS',type:'extra',status:'done',prio:'media',due:'2026-11-04',project:'FUCS',requestedBy:'Dirección de proyectos',a:[['ye',2,2],['ru',2,2]]}),
+  T({name:'Corrección de errores reportados en curso Heel',type:'extra',status:'doing',progress:60,prio:'alta',due:'2026-11-05',project:'Heel',requestedBy:'Cliente Heel',a:[['ye',3,4],['ru',2,3.5]]}),
+  T({name:'Integración SSO con Office 365',type:'extra',status:'review',prio:'alta',due:'2026-11-05',project:'One Link',requestedBy:'Cliente One Link',a:[['ru',6,8]]}),
+  T({name:'Reportes de notas para cierre de semestre',type:'extra',status:'doing',prio:'media',due:'2026-11-06',project:'UAPR',requestedBy:'Cliente UAPR',a:[['wi',6,7]]}),
+  T({name:'Edición de video testimonial para redes',type:'extra',status:'review',prio:'baja',due:'2026-11-05',project:'Mercadeo',requestedBy:'Mercadeo',a:[['ye',4,3]]}),
+ ];
+ const norm=(ts,tg)=>{const tot={};ts.forEach(t=>t.assignees.forEach(a=>tot[a.p]=(tot[a.p]||0)+a.real));ts.forEach(t=>t.assignees.forEach(a=>{const f=tot[a.p]?tg[a.p]/tot[a.p]:1;a.real=Math.round(a.real*f*4)/4;a.est=Math.max(0.5,Math.round(a.est*f*4)/4);}));};
+ norm(w44,{ye:39,ru:41,wi:37});norm(w45,{ye:44.5,ru:37,wi:31});
+ return {44:{tasks:w44},45:{tasks:w45}};
+}
+
+class Component extends DCLogic {
+  state=(()=>{let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+    return {weeks:saved?.weeks||seed(),timer:saved?.timer||null,week:BASE_WEEK,view:null,filter:null,q:'',openId:null,newId:null,nameErr:false,help:false,toast:null,collapsed:{},quick:{plan:'',extra:''},w:typeof window!=='undefined'?window.innerWidth:1200,dragId:null,overCol:null,saved:false,loadOpen:null};})();
+  componentDidMount(){
+    this._tick=setInterval(()=>{if(this.state.timer)this.forceUpdate();},1000);
+    this._rs=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this._rs);
+    this._kd=e=>{const tag=(e.target.tagName||'').toLowerCase();const typing=['input','textarea','select'].includes(tag);
+      if(e.key==='Escape'){if(this.state.help)this.setState({help:false});else if(this.state.openId)this.close();return;}
+      if(typing)return;
+      if((e.key==='n'||e.key==='N')&&!e.metaKey&&!e.ctrlKey&&this.cur()){e.preventDefault();this.newTask('plan');}
+      if(e.altKey&&e.key==='ArrowLeft')this.goWeek(-1);
+      if(e.altKey&&e.key==='ArrowRight')this.goWeek(1);};
+    window.addEventListener('keydown',this._kd);
+  }
+  componentWillUnmount(){clearInterval(this._tick);clearTimeout(this._tt);window.removeEventListener('resize',this._rs);window.removeEventListener('keydown',this._kd);}
+  componentDidUpdate(pp,ps){if(ps.weeks!==this.state.weeks||ps.timer!==this.state.timer){try{localStorage.setItem(KEY,JSON.stringify({weeks:this.state.weeks,timer:this.state.timer}));}catch(e){}}}
+  cap(){return this.props.capacity??40;}
+  cur(){return this.state.weeks[this.state.week];}
+  weekNums(){return Object.keys(this.state.weeks).map(Number).sort((a,b)=>a-b);}
+  toast(msg,undo){clearTimeout(this._tt);this.setState({toast:{msg,undo}});this._tt=setTimeout(()=>this.setState({toast:null}),5000);}
+  mutate(fn,week){const w=week??this.state.week;this.setState(s=>{const weeks={...s.weeks};const tasks=weeks[w].tasks.map(t=>({...t,assignees:t.assignees.map(a=>({...a}))}));fn(tasks);weeks[w]={...weeks[w],tasks};return {weeks,saved:true};});clearTimeout(this._st);this._st=setTimeout(()=>this.setState({saved:false}),1400);}
+  upd(id,patch){this.mutate(ts=>{const t=ts.find(x=>x.id===id);if(t)Object.assign(t,patch);});}
+  updA(id,p,patch){this.mutate(ts=>{const a=ts.find(x=>x.id===id)?.assignees.find(a=>a.p===p);if(a)Object.assign(a,patch);});}
+  snapshot(){const s=this.state.weeks;return ()=>this.setState({weeks:s,toast:null});}
+  goWeek(d){const n=this.state.week+d,ws=this.weekNums();if(n<ws[0]||n>ws[ws.length-1]+1)return;this.setState({week:n,openId:null});}
+  newTask(type){const t=T({name:'',type,status:'todo',prio:'media',due:iso(addD(monday(this.state.week),4)),a:this.state.filter?[[this.state.filter,1,0]]:[]});
+    this.mutate(ts=>ts.push(t));this.setState({openId:t.id,newId:t.id,nameErr:false,collapsed:{...this.state.collapsed,[type]:false}});}
+  close(){const t=this.cur()?.tasks.find(x=>x.id===this.state.openId);
+    if(t&&!t.name.trim()){if(this.state.newId===t.id){this.mutate(ts=>{const i=ts.findIndex(x=>x.id===t.id);ts.splice(i,1);});this.setState({openId:null,newId:null});this.toast('Se descartó la tarea sin nombre');return;}
+      this.setState({nameErr:true});return;}
+    this.setState({openId:null,newId:null,nameErr:false});}
+  del(id){const undo=this.snapshot();const t=this.cur().tasks.find(x=>x.id===id);if(this.state.timer?.taskId===id)this.setState({timer:null});
+    this.mutate(ts=>{ts.splice(ts.findIndex(x=>x.id===id),1);});this.setState({openId:null,newId:null});this.toast('Tarea eliminada: '+(t.name||'Sin título'),undo);}
+  setStatus(id,st){const undo=this.snapshot();const t=this.cur().tasks.find(x=>x.id===id);const patch={status:st};if(st==='done')patch.progress=100;else if(t&&t.status==='done')patch.progress=PDEF[st];this.upd(id,patch);this.toast('Estado: '+SM[st].l,undo);}
+  setProgress(id,v){const t=this.cur().tasks.find(x=>x.id===id);const patch={progress:v};if(v===100&&t.status!=='done'){patch.status='done';this.toast('Avance 100%: tarea completada',this.snapshot());}else if(v<100&&t.status==='done')patch.status='doing';else if(v>0&&t.status==='todo')patch.status='doing';this.upd(id,patch);}
+  startTimer(id,p){const tm=this.state.timer;if(tm)this.stopTimer(true);this.setState({timer:{taskId:id,p,week:this.state.week,start:Date.now()}});
+    const t=this.cur().tasks.find(x=>x.id===id);if(t.status==='todo')this.upd(id,{status:'doing'});}
+  stopTimer(silent){const tm=this.state.timer;if(!tm)return;const h=(Date.now()-tm.start)/3600000;
+    this.mutate(ts=>{const a=ts.find(x=>x.id===tm.taskId)?.assignees.find(a=>a.p===tm.p);if(a)a.real=r1(a.real+h);},tm.week);
+    this.setState({timer:null});if(silent!==true){const m=Math.max(1,Math.round(h*60));this.toast('Se registraron '+m+' min a '+PM[tm.p].first);}}
+  rowTimer(t){const tm=this.state.timer;if(tm&&tm.taskId===t.id){this.stopTimer();return;}
+    if(!t.assignees.length){this.setState({openId:t.id});this.toast('Asigna un responsable para registrar tiempo');return;}
+    const p=t.assignees.find(a=>a.p===this.state.filter)?.p||t.assignees[0].p;this.startTimer(t.id,p);}
+  createWeek(carry){const w=this.state.week,prev=this.state.weeks[w-1];let tasks=[];
+    if(carry&&prev){tasks=prev.tasks.filter(t=>t.status!=='done').map(t=>({...t,id:uid(),type:'plan',carriedFrom:w-1,movedTo:null,delayBy:'',delayReason:'',assignees:t.assignees.map(a=>({p:a.p,est:Math.max(r1(a.est-a.real),1),real:0}))}));}
+    this.setState(s=>{const weeks={...s.weeks,[w]:{tasks}};if(carry&&prev)weeks[w-1]={...prev,tasks:prev.tasks.map(t=>t.status!=='done'?{...t,movedTo:w}:t)};return {weeks};});
+    this.toast(carry&&tasks.length?'Tablero creado con '+tasks.length+' tareas pendientes':'Tablero creado');}
+  live(t,a){const tm=this.state.timer;return a.real+((tm&&tm.taskId===t.id&&tm.p===a.p)?(Date.now()-tm.start)/3600000:0);}
+
+  renderVals(){
+    const s=this.state,cap=this.cap(),isMobile=s.w<760,view=s.view??this.props.defaultView??'lista';
+    const ws=this.weekNums(),cur=this.cur(),mon=monday(s.week),fri=addD(mon,4);
+    const curWeek=BASE_WEEK+Math.floor((TODAY-BASE_MON)/(7*864e5));
+    const range=mon.getMonth()===fri.getMonth()?`${mon.getDate()} – ${fri.getDate()} ${MON[fri.getMonth()]} ${fri.getFullYear()}`:`${mon.getDate()} ${MON[mon.getMonth()]} – ${fri.getDate()} ${MON[fri.getMonth()]} ${fri.getFullYear()}`;
+    const isPast=s.week<curWeek,isCur=s.week===curWeek;
+    const stop=e=>e.stopPropagation();
+    const tm=s.timer;
+    const tasks=cur?cur.tasks:[];
+    const q=s.q.trim().toLowerCase();
+    const vis=tasks.filter(t=>(!s.filter||t.assignees.some(a=>a.p===s.filter))&&(!q||(t.name+' '+t.project+' '+t.requestedBy).toLowerCase().includes(q)));
+    const sumE=t=>t.assignees.filter(a=>!s.filter||a.p===s.filter).reduce((x,a)=>x+a.est,0);
+    const sumR=t=>t.assignees.filter(a=>!s.filter||a.p===s.filter).reduce((x,a)=>x+this.live(t,a),0);
+    const todayIso=iso(TODAY);
+    const row=t=>{const st=SM[t.status],pr=PRM[t.prio],est=sumE(t),real=sumR(t),done=t.status==='done';
+      const overdue=!done&&t.due&&t.due<todayIso,over=real>est&&est>0,on=tm&&tm.taskId===t.id;
+      return {id:t.id,progress:t.progress,progLabel:t.progress+'%',progW:t.progress+'%',progColor:t.progress===100?'#47740A':'#5E1A8C',onProgress:e=>this.setProgress(t.id,+e.target.value),name:t.name||'Sin título',project:t.project,hasProject:!!t.project,carried:!!t.carriedFrom,carriedLabel:'Viene de S'+t.carriedFrom,moved:!!t.movedTo,movedLabel:'Pasó a S'+t.movedTo,
+        requestedBy:t.requestedBy,hasRequested:t.type==='extra'&&!!t.requestedBy,hasDelay:!!t.delayBy||!!t.delayReason,
+        status:t.status,statusLabel:st.l,statusBg:st.bg,statusText:st.t,prioLabel:pr.l,prioColor:pr.c,
+        dueLabel:fmtDate(t.due)+(overdue?' · vencida':''),dueColor:overdue?'#C2134F':'#4A4752',
+        est:fmtH(est),real:fmtH(real),realColor:over?'#C2134F':'#1E1A24',barW:(est?Math.min(real/est,1)*100:0)+'%',barColor:over?'#E6195F':(done?'#7DBA1F':'#5E1A8C'),
+        avatars:t.assignees.map(a=>({ini:PM[a.p].ini,color:PM[a.p].color,name:PM[a.p].name})),noAssignee:!t.assignees.length,
+        checkBorder:done?'#7DBA1F':'#C9C3D2',checkBg:done?'#7DBA1F':'#fff',checkMark:done?'✓':'',deco:done?'line-through':'none',nameColor:done?'#8A8A8F':'#1E1A24',
+        typeLabel:t.type==='plan'?'Planeada':'Adicional',typeColor:t.type==='plan'?'#5E1A8C':'#C2134F',typeSoft:t.type==='plan'?'#F1E9F7':'#FDE4ED',
+        timerIcon:on?'■':'▶',timerBg:on?'#E6195F':'#F1E9F7',timerColor:on?'#fff':'#5E1A8C',timerAria:on?'Detener cronómetro':'Iniciar cronómetro',
+        onOpen:()=>this.setState({openId:t.id,nameErr:false}),
+        onToggle:e=>{e.stopPropagation();this.setStatus(t.id,done?'todo':'done');},
+        onStatus:e=>this.setStatus(t.id,e.target.value),
+        onTimer:e=>{e.stopPropagation();this.rowTimer(t);},
+        onDrag:e=>{e.dataTransfer.setData('text/plain',t.id);this.setState({dragId:t.id});}};};
+    const ord={blocked:0,doing:1,review:2,todo:3,done:4};
+    const sortT=a=>a.slice().sort((x,y)=>ord[x.status]-ord[y.status]||(x.due||'').localeCompare(y.due||''));
+    const mkSec=(key,title,subtitle,color,soft,ph)=>{const list=sortT(vis.filter(t=>t.type===key));const open=!s.collapsed[key];
+      return {key,prog:wProg(list)+'%',title,subtitle,color,soft,count:list.length,est:fmtH(list.reduce((x,t)=>x+sumE(t),0)),real:fmtH(list.reduce((x,t)=>x+sumR(t),0)),
+        rows:open?list.map(row):[],open,chevRot:open?'none':'rotate(-90deg)',empty:open&&!list.length,
+        emptyText:key==='plan'?'No hay tareas planeadas con este filtro.':'Sin tareas adicionales registradas. Cuando llegue una solicitud no planeada, agrégala aquí.',
+        toggle:()=>this.setState({collapsed:{...s.collapsed,[key]:open}}),onAdd:()=>this.newTask(key),
+        quick:s.quick[key],quickPh:ph,onQuick:e=>this.setState({quick:{...s.quick,[key]:e.target.value}}),
+        onQuickKey:e=>{if(e.key==='Enter'&&e.target.value.trim()){const name=e.target.value.trim();const t=T({name,type:key,status:'todo',due:iso(fri),a:s.filter?[[s.filter,1,0]]:[]});this.mutate(ts=>ts.push(t));this.setState({quick:{...this.state.quick,[key]:''}});this.toast('Tarea agregada. Ábrela para asignar y estimar.');}}};};
+    const sections=[mkSec('plan','Planeación','Lo comprometido al iniciar la semana','#5E1A8C','#F1E9F7','Agregar tarea planeada y presionar Enter'),
+      mkSec('extra','Tareas adicionales','Surgieron durante la semana y no estaban en el plan','#E6195F','#FDE4ED','Agregar tarea adicional y presionar Enter')];
+    // stats
+    let pr=0,er=0,pe=0,od=0;vis.forEach(t=>{const r=sumR(t);if(t.type==='plan'){pr+=r;pe+=sumE(t);}else er+=r;if(t.status!=='done'&&t.due&&t.due<todayIso)od++;});
+    const sp=wProg(vis.filter(t=>t.type==='plan'));const donePlan=vis.filter(t=>t.type==='plan'&&t.status==='done').length,totPlan=vis.filter(t=>t.type==='plan').length;
+    // load
+    const load=PEOPLE.map(p=>{let plan=0,extra=0,est=0,n=0;tasks.forEach(t=>t.assignees.forEach(a=>{if(a.p!==p.id)return;n++;const r=this.live(t,a);est+=a.est;if(t.type==='plan')plan+=r;else extra+=r;}));return {p,plan,extra,est,n,real:plan+extra};});
+    const scale=Math.max(cap*1.25,...load.map(l=>l.real));
+    const exceeded=load.filter(l=>l.real>cap).length;
+    const stats=[
+      {label:'Cumplimiento del sprint',value:sp+'%',sub:donePlan+' de '+totPlan+' tareas planeadas completadas · '+fmtH(pr)+' de '+fmtH(pe)+' est.',color:'#5E1A8C',valueColor:'#1E1A24',hasBar:true,barW:sp+'%'},
+      {label:'Tareas adicionales',value:(()=>{const n=vis.filter(t=>t.type==='extra').length;return n+(n===1?' tarea':' tareas')+' · '+fmtH(er);})(),sub:Math.round(er/((pr+er)||1)*100)+'% de las horas reales de la semana',color:'#E6195F',valueColor:'#1E1A24'},
+      {label:'Vencidas sin completar',value:String(od),sub:od?'revisa la justificación de cada una':'todo al día',color:'#FFC20E',valueColor:od?'#C2134F':'#1E1A24'},
+      {label:'Personas excedidas',value:exceeded+' de '+PEOPLE.length,sub:'superan '+fmtH(cap)+' esta semana',color:'#22A7E8',valueColor:exceeded?'#C2134F':'#1E1A24'}];
+    stats.forEach(x=>{x.hasBar=!!x.hasBar;x.barW=x.barW||'0%';});
+    // board
+    const columns=STATUSES.map(st=>{const list=vis.filter(t=>t.status===st.k).sort((a,b)=>(a.due||'').localeCompare(b.due||''));const hov=s.dragId&&s.overCol===st.k;
+      return {label:st.l,color:st.c,count:list.length,cards:list.map(row),zoneBg:hov?'#F1E9F7':'#EFEDF2',zoneBorder:hov?'#5E1A8C':'transparent',
+        onOver:e=>{e.preventDefault();if(this.state.overCol!==st.k)this.setState({overCol:st.k});},
+        onDrop:e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');this.setState({dragId:null,overCol:null});const t=tasks.find(x=>x.id===id);if(t&&t.status!==st.k)this.setStatus(id,st.k);}};});
+    // drawer
+    const ot=s.openId&&tasks.find(t=>t.id===s.openId);let d={};
+    if(ot){const st=SM[ot.status],est=ot.assignees.reduce((x,a)=>x+a.est,0),real=ot.assignees.reduce((x,a)=>x+this.live(ot,a),0);
+      const overdue=ot.status!=='done'&&ot.due&&ot.due<todayIso;
+      d={name:ot.name,nameError:s.nameErr&&!ot.name.trim(),onName:e=>this.upd(ot.id,{name:e.target.value}),
+        carried:!!ot.carriedFrom,carriedLabel:'Viene de Semana '+ot.carriedFrom,
+        typeOpts:[['plan','Planeada','#5E1A8C'],['extra','Adicional','#E6195F']].map(([k,l,c])=>({label:l,bg:ot.type===k?c:'transparent',color:ot.type===k?'#fff':'#4A4752',onClick:()=>this.upd(ot.id,{type:k})})),
+        status:ot.status,statusBg:st.bg,statusText:st.t,onStatus:e=>this.setStatus(ot.id,e.target.value),progress:ot.progress,progLabel:ot.progress+'%',progColor:ot.progress===100?'#47740A':'#5E1A8C',onProgress:e=>this.setProgress(ot.id,+e.target.value),
+        prioOpts:PRIOS.map(p=>({label:p.l,bg:ot.prio===p.k?p.c:'#fff',color:ot.prio===p.k?'#fff':p.c,border:ot.prio===p.k?p.c:'#E7E4EC',onClick:()=>this.upd(ot.id,{prio:p.k})})),
+        due:ot.due||'',onDue:e=>this.upd(ot.id,{due:e.target.value}),overdue,
+        project:ot.project,onProject:e=>this.upd(ot.id,{project:e.target.value}),
+        isExtra:ot.type==='extra',requestedBy:ot.requestedBy,onRequested:e=>this.upd(ot.id,{requestedBy:e.target.value}),
+        desc:ot.desc,onDesc:e=>this.upd(ot.id,{desc:e.target.value}),
+        est:fmtH(est),real:fmtH(real),realColor:real>est&&est>0?'#C2134F':'#1E1A24',noPeople:!ot.assignees.length,
+        people:ot.assignees.map(a=>{const on=tm&&tm.taskId===ot.id&&tm.p===a.p;const lr=this.live(ot,a);const hm=v=>{const m=Math.round(v*60);return [Math.floor(m/60),m%60];};const [eh,em]=hm(a.est),[rh,rm]=hm(lr);const num=e=>Math.max(0,parseInt(e.target.value)||0);return {name:PM[a.p].name,
+          estH:eh,estM:em,realH:rh,realM:rm,
+          onEstH:e=>this.updA(ot.id,a.p,{est:num(e)+em/60}),onEstM:e=>this.updA(ot.id,a.p,{est:eh+num(e)/60}),
+          onRealH:e=>this.updA(ot.id,a.p,{real:num(e)+rm/60}),onRealM:e=>this.updA(ot.id,a.p,{real:rh+num(e)/60}),
+          quick:[15,30,60,120].map(m=>({label:'+'+(m<60?m+' min':m/60+' h'),onClick:()=>{const undo=this.snapshot();this.updA(ot.id,a.p,{real:a.real+m/60});this.toast('Se sumaron '+(m<60?m+' min':m/60+' h')+' a '+PM[a.p].first,undo);}})),ini:PM[a.p].ini,color:PM[a.p].color,est:a.est,real:on?r1(lr):a.real,realColor:lr>a.est?'#C2134F':'#1E1A24',
+          onEst:e=>this.updA(ot.id,a.p,{est:Math.max(0,parseFloat(e.target.value)||0)}),onReal:e=>this.updA(ot.id,a.p,{real:Math.max(0,parseFloat(e.target.value)||0)}),
+          timerIcon:on?'■':'▶',timerBg:on?'#E6195F':'#F1E9F7',timerColor:on?'#fff':'#5E1A8C',timerAria:on?'Detener cronómetro':'Cronometrar a '+PM[a.p].first,
+          onTimer:()=>on?this.stopTimer():this.startTimer(ot.id,a.p),
+          onRemove:()=>{const undo=this.snapshot();this.mutate(ts=>{const t=ts.find(x=>x.id===ot.id);t.assignees=t.assignees.filter(x=>x.p!==a.p);});this.toast(PM[a.p].first+' ya no es responsable',undo);}};}),
+        addable:PEOPLE.filter(p=>!ot.assignees.some(a=>a.p===p.id)).map(p=>({ini:p.ini,first:p.first,color:p.color,onAdd:()=>this.mutate(ts=>{ts.find(x=>x.id===ot.id).assignees.push({p:p.id,est:1,real:0});})})),
+        showDelay:ot.type==='plan'&&(overdue||!!ot.carriedFrom||ot.status==='blocked'||!!ot.delayBy),
+        delayBy:ot.delayBy,onDelayBy:e=>this.upd(ot.id,{delayBy:e.target.value}),delayReason:ot.delayReason,onDelayReason:e=>this.upd(ot.id,{delayReason:e.target.value}),
+        delayOpts:tasks.filter(t=>t.type==='extra').map(t=>({id:t.id,name:t.name})),
+        onDelete:()=>this.del(ot.id)};}
+    // empty week
+    const prev=s.weeks[s.week-1];const pend=prev?prev.tasks.filter(t=>t.status!=='done'):[];
+    const timerT=tm&&s.weeks[tm.week]?.tasks.find(t=>t.id===tm.taskId);
+    const el=tm?Math.floor((Date.now()-tm.start)/1000):0;
+    const clock=[Math.floor(el/3600),Math.floor(el%3600/60),el%60].map(n=>String(n).padStart(2,'0')).join(':');
+    const tab=(k,l)=>({label:l,bg:view===k?'#fff':'transparent',color:view===k?'#5E1A8C':'#4A4752',shadow:view===k?'0 1px 3px rgba(30,26,36,.12)':'none',onClick:()=>this.setState({view:k})});
+    const movedN=tasks.filter(t=>t.movedTo).length;
+    return {
+      stop,isMobile:s.w<1180,isDesktop:s.w>=1180,q:s.q,onQ:e=>this.setState({q:e.target.value}),
+      timerOn:!!tm,timerClock:clock,timerTask:timerT?(PM[tm.p].first+' · '+(timerT.name||'Sin título')):'',stopTimer:()=>this.stopTimer(),
+      toggleHelp:()=>this.setState({help:!s.help}),helpOpen:s.help,newTask:()=>this.newTask('plan'),
+      weekTitle:'Semana '+s.week,weekRange:range,weekBadge:isCur?'Esta semana':isPast?'Cerrada':'Próxima',weekBadgeBg:isCur?'#ECF6DE':isPast?'#EFEEF2':'#E1F3FC',weekBadgeColor:isCur?'#47740A':isPast?'#4A4752':'#0B6A99',
+      prevWeek:()=>this.goWeek(-1),nextWeek:()=>this.goWeek(1),prevDisabled:s.week<=ws[0],nextDisabled:s.week>ws[ws.length-1],prevOpacity:s.week<=ws[0]?.4:1,nextOpacity:s.week>ws[ws.length-1]?.4:1,
+      showGoToday:s.week!==curWeek,goToday:()=>this.setState({week:curWeek}),
+      tabs:[tab('lista','Lista'),tab('tablero','Tablero'),tab('carga','Carga del equipo')],
+      clearFilter:()=>this.setState({filter:null}),allBg:s.filter?'#fff':'#5E1A8C',allColor:s.filter?'#4A4752':'#fff',allBorder:s.filter?'#E7E4EC':'#5E1A8C',
+      peopleChips:PEOPLE.map(p=>({name:p.name+' · '+p.role,ini:p.ini,first:p.first,color:p.color,bg:s.filter===p.id?'#F1E9F7':'#fff',border:s.filter===p.id?'#5E1A8C':'#E7E4EC',onClick:()=>this.setState({filter:s.filter===p.id?null:p.id})})),
+      showClosedBanner:!!cur&&isPast,closedText:'Semana cerrada. Puedes consultar y corregir horas.'+(movedN?' '+movedN+' tareas no completadas pasaron a la Semana '+(s.week+1)+'.':''),
+      noWeek:!cur,hasWeek:!!cur,emptyTitle:'Semana '+s.week+' aún no tiene tablero',
+      emptyText:pend.length?`Al crearlo se traerán ${pend.length} tareas no completadas de la Semana ${s.week-1}, con las horas que les faltan como nuevo estimado. Quedarán marcadas como “Viene de S${s.week-1}”.`:'La semana anterior no dejó tareas pendientes.',
+      hasPending:pend.length>0,pending:pend.map(t=>({name:t.name,status:SM[t.status].l,color:SM[t.status].c,left:'Faltan '+fmtH(Math.max(t.assignees.reduce((x,a)=>x+a.est-a.real,0),1))})),
+      createCarryLabel:pend.length?`Crear tablero y traer ${pend.length} pendientes`:'Crear tablero',createCarry:()=>this.createWeek(true),createEmpty:()=>this.createWeek(false),
+      stats,isList:view==='lista',isBoard:view==='tablero',isLoad:view==='carga',sections,progOpts:[0,10,20,30,40,50,60,70,80,90,100].map(v=>({v,l:v+'%'})),statusOpts:STATUSES,columns,endDrag:()=>this.setState({dragId:null,overCol:null}),
+      capLabel:fmtH(cap),loadCols:isMobile?'1fr':'minmax(200px,260px) minmax(0,1fr) 190px',
+      load:load.map(l=>{const over=l.real-cap;const st=over>0?['Excedido +'+fmtH(over),'#FDE4ED','#A10F43']:l.real>=cap*0.9?['Al límite','#FFF3CF','#7A5A00']:['Disponible '+fmtH(cap-l.real),'#ECF6DE','#47740A'];
+        return {name:l.p.name,role:l.p.role,ini:l.p.ini,color:l.p.color,tasks:l.n+(l.n===1?' tarea':' tareas'),plan:fmtH(l.plan),extra:fmtH(l.extra),est:fmtH(l.est),real:fmtH(l.real),
+          totalW:(l.real/scale*100)+'%',planShare:(l.real?l.plan/l.real*100:0)+'%',capLeft:(cap/scale*100)+'%',state:st[0],stateBg:st[1],stateColor:st[2],
+          onFilter:()=>this.setState({filter:l.p.id,view:'lista'}),
+          first:l.p.first,open:s.loadOpen===l.p.id,chevRot:s.loadOpen===l.p.id?'rotate(180deg)':'none',onClick:()=>this.setState({loadOpen:s.loadOpen===l.p.id?null:l.p.id}),
+          none:!l.n,items:s.loadOpen!==l.p.id?[]:tasks.filter(t=>t.assignees.some(a=>a.p===l.p.id)).sort((x,y)=>(x.type===y.type?0:x.type==='plan'?-1:1)||ord[x.status]-ord[y.status]).map(t=>{const a=t.assignees.find(a=>a.p===l.p.id),lr=this.live(t,a),st=SM[t.status],done=t.status==='done';
+            return {name:t.name||'Sin título',project:t.project,hasProject:!!t.project,shared:t.assignees.length>1,typeLabel:t.type==='plan'?'Planeada':'Adicional',typeColor:t.type==='plan'?'#5E1A8C':'#C2134F',typeSoft:t.type==='plan'?'#F1E9F7':'#FDE4ED',
+              statusLabel:st.l,statusBg:st.bg,statusText:st.t,progLabel:t.progress+'%',progColor:t.progress===100?'#47740A':'#5E1A8C',deco:done?'line-through':'none',nameColor:done?'#6B6B73':'#1E1A24',
+              est:fmtH(a.est),real:fmtH(lr),realColor:lr>a.est?'#C2134F':'#1E1A24',onOpen:()=>this.setState({openId:t.id,nameErr:false})};})};}),
+      loadItemCols:isMobile?'1fr':'minmax(0,1fr) 190px 170px',
+      drawerOpen:!!ot,drawerW:isMobile?'100%':'500px',closeDrawer:()=>this.close(),d,savedLabel:s.saved?'✓ Guardado':'',
+      toastOn:!!s.toast,toastMsg:s.toast?.msg||'',toastUndo:!!s.toast?.undo,doUndo:()=>s.toast?.undo&&s.toast.undo()
+    };
+  }
+}
+</script>
+</body>
+</html>
