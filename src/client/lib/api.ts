@@ -24,6 +24,7 @@ export class ApiError extends Error {
 
 let csrfToken = '';
 let onUnauthorized: () => void = () => undefined;
+const appBasePath = process.env.APP_BASE_PATH ?? '';
 
 export function setCsrfToken(token: string): void {
   csrfToken = token;
@@ -39,7 +40,7 @@ async function request<T>(method: string, url: string, body?: unknown, opts: { s
   if (method !== 'GET') headers['X-CSRF-Token'] = csrfToken;
   let res: Response;
   try {
-    res = await fetch(url, { method, headers, credentials: 'same-origin', body: body === undefined ? null : JSON.stringify(body) });
+    res = await fetch(`${appBasePath}${url}`, { method, headers, credentials: 'same-origin', body: body === undefined ? null : JSON.stringify(body) });
   } catch {
     throw new ApiError(0, 'network_error', 'No hay conexión con el servidor. Revisa tu red e intenta de nuevo.');
   }

@@ -8,6 +8,14 @@ import * as esbuild from 'esbuild';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
 const pub = path.join(dist, 'public');
+const rawBasePath = process.env.APP_BASE_PATH?.trim() ?? '';
+if (rawBasePath && !/^\/(?:[A-Za-z0-9._~-]+\/?)*$/.test(rawBasePath)) {
+  throw new Error('APP_BASE_PATH debe ser una ruta como /planeacion (sin dominio ni query string).');
+}
+const basePath = rawBasePath.replace(/\/+$/, '');
+if (basePath.split('/').some((part) => part === '.' || part === '..')) {
+  throw new Error('APP_BASE_PATH no puede contener segmentos . o ..');
+}
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(pub, { recursive: true });
 
@@ -19,7 +27,10 @@ await esbuild.build({
   format: 'esm',
   target: ['es2022', 'chrome110', 'firefox110', 'safari16'],
   jsx: 'automatic',
-  define: { 'process.env.NODE_ENV': '"production"' },
+  define: {
+    'process.env.NODE_ENV': '"production"',
+    'process.env.APP_BASE_PATH': JSON.stringify(basePath),
+  },
   outdir: pub,
   metafile: true,
   logLevel: 'warning',
@@ -27,7 +38,12 @@ await esbuild.build({
 await esbuild.build({ entryPoints: [path.join(root, 'src/client/styles.css')], bundle: true, minify: true, outfile: path.join(pub, 'app.css'), logLevel: 'warning' });
 
 const hash = createHash('sha256').update(fs.readFileSync(path.join(pub, 'app.js'))).update(fs.readFileSync(path.join(pub, 'app.css'))).digest('hex').slice(0, 10);
-fs.writeFileSync(path.join(pub, 'index.html'), fs.readFileSync(path.join(root, 'src/client/index.html'), 'utf8').replaceAll('__BUILD__', hash));
+fs.writeFileSync(
+  path.join(pub, 'index.html'),
+  fs.readFileSync(path.join(root, 'src/client/index.html'), 'utf8')
+    .replaceAll('__BUILD__', hash)
+    .replaceAll('__BASE_PATH__', basePath),
+);
 for (const f of fs.readdirSync(path.join(root, 'public'))) fs.copyFileSync(path.join(root, 'public', f), path.join(pub, f));
 
 await esbuild.build({
@@ -57,4 +73,4 @@ for (const cli of ['migrate', 'seed', 'backup', 'create-admin']) {
 }
 
 const kb = (f) => (fs.statSync(path.join(pub, f)).size / 1024).toFixed(1) + ' KB';
-console.log(`Build OK (${hash}) → dist/  app.js ${kb('app.js')} · app.css ${kb('app.css')}`);
+console.log(`Build OK (${hash}) → dist/  base ${basePath || '/'} · app.js ${kb('app.js')} · app.css ${kb('app.css')}`);

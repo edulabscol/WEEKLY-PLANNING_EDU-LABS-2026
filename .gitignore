@@ -9,3 +9,5 @@ playwright-report/
 .run/
 .pgbackups/
 data/
+.idea/
+.DS_Store
