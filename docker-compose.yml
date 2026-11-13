@@ -1,0 +1,23 @@
+# Entorno local con Docker y SQLite (igual que "npm run dev", sin instalar Node).
+#   docker compose up --build     → http://localhost:3000
+#   docker compose down           → detener (los datos quedan en el volumen planeacion-data)
+# Para probar con PostgreSQL en local: docker compose -f docker-compose.postgres.yml up --build
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      DATABASE_URL: sqlite:/app/data/planeacion.db
+      APP_TIMEZONE: America/Bogota
+      SEED_ON_EMPTY: "true"
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Coordinacion2026}
+      SEED_MEMBER_PASSWORD: ${SEED_MEMBER_PASSWORD:-Equipo2026}
+    volumes:
+      - planeacion-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  planeacion-data:

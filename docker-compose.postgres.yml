@@ -1,0 +1,36 @@
+# Ensayo local con PostgreSQL 16 (como en el servidor).
+#   docker compose -f docker-compose.postgres.yml up --build   → http://localhost:3000
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: planeacion
+      POSTGRES_USER: planeacion
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-planeacion_local}
+      POSTGRES_INITDB_ARGS: --auth=scram-sha-256
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planeacion -d planeacion"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://planeacion:${LOCAL_DB_PASSWORD:-planeacion_local}@db:5432/planeacion?sslmode=disable
+      APP_TIMEZONE: America/Bogota
+      SEED_ON_EMPTY: "true"
+    restart: unless-stopped
+
+volumes:
+  pg-data:
